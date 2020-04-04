@@ -2,7 +2,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <cstdint>
-#include <array>
+#include <vector>
 
 enum
 {
@@ -14,58 +14,59 @@ enum
 
 std::unordered_map<unsigned char, unsigned char> charEnum
 {
-    {'A', A},
-    {'C', C},
-    {'T', T}, 
-    {'G', G}
-}
+    {'A', A}, {'a', A},
+    {'C', C}, {'c', C},
+    {'T', T}, {'t', T},
+    {'G', G}, {'g', G} 
+};
 
 inline unsigned char pos(unsigned char v, unsigned char p)
 {
     return v << (p * 2);
-};
+}
 
 // i % 4
 
  int main(int argc, char* argv[])
  {
      if (argc < 2)
-        return !printf("Not enough arguments. Usage: %s <filepath>\n", __FILE__ + SOURCE_PATH_SIZE);
+        return !printf("Not enough arguments. Usage: %s <filepath>\n", __FILE__);
 
     std::string fileName = argv[1];
     const size_t fileSize = std::filesystem::file_size(fileName);
 
     const size_t newFileSize = fileSize % 4 ? fileSize / 4 + 1 : fileSize / 4;
+    
+    //printf("filesize: %zu\nnew filesize: %zu\n", fileSize, newFileSize);
 
     std::ifstream f = std::ifstream(fileName, std::ios::binary);
 
-    char* fbuf = malloc(fileSize);
+    char* fbuf = (char*)malloc(fileSize);
     if (!fbuf)
-        return !printf("Failed to allocate %i bytes, block size not yet supported\n", fileSize);
+        return !printf("Failed to allocate %zu bytes, block size not yet supported\n", fileSize);
     
+    f.read(fbuf, fileSize);
+    f.close();
+
     std::vector<unsigned char> datav;
-    data.reserve(newFileSize);
+    datav.reserve(newFileSize);
     
     unsigned char current = 0b00000000;
 
     for (uint i = 0; i <= fileSize; i++)
     {
-        auto r = pos(fbuf[i], i % 4);
+        unsigned char r = pos(charEnum[fbuf[i]], i % 4);
 
         if (i != 0 && !(i % 4))
         {
-            datav.push_back(r);
-            current ^= current;
+            printf("%c", current);
+            current = 0;
         };
 
-        current | r;
+        current |= r;
     };
 
-    data.push_back(0);
-
-    unsigned char* data = datav.data();
-
-    printf("%.*s", newFileSize, data); // to /dev/stdout which can be piped into file
+    free(fbuf);
 
     return 0;
  }
